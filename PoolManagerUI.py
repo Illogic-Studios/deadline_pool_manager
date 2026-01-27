@@ -144,7 +144,7 @@ class DeadlinePoolManagerGUI(QMainWindow):
         # Buttons
         buttons_layout = QHBoxLayout()
 
-        self.equal_btn = QPushButton("Automatic Equal Distribution")
+        self.equal_btn = QPushButton("Set Equal Distribution")
         self.equal_btn.clicked.connect(self.set_equal_distribution)
         buttons_layout.addWidget(self.equal_btn)
 
@@ -183,7 +183,8 @@ class DeadlinePoolManagerGUI(QMainWindow):
             self.pool_sliders[pool_name].set_value(percentage)
 
     def set_equal_distribution(self):
-        pass
+        for slider in self.pool_sliders.values():
+            slider.set_value(50)
 
     def save(self):
         pass
