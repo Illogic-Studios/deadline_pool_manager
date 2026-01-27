@@ -1,6 +1,7 @@
 import PoolManagerConfig as config
 from Deadline.Scripting import RepositoryUtils
 
+
 class DeadlinePoolManager:
     def __init__(self):
         self.workers = []

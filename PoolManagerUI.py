@@ -33,8 +33,6 @@ from PoolManagerCore import DeadlinePoolManager
 
 
 class PoolSlider(QWidget):
-    """Widget personnalisé : pool + slider + spinbox"""
-
     valueChanged = Signal(str, int)
 
     def __init__(self, pool_name, parent=None):
@@ -46,7 +44,7 @@ class PoolSlider(QWidget):
         layout = QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
 
-        # Nom de la pool
+        # Pool name
         label = QLabel(self.pool_name)
         label.setMinimumWidth(150)
         font = QFont()
@@ -99,28 +97,23 @@ class DeadlinePoolManagerGUI(QMainWindow):
         self.new_distribution = {}
         self.pool_sliders = {}
 
-        self.setWindowTitle("Deadline Pool Manager V2")
+        self.setWindowTitle("Deadline Pool Manager")
         self.setGeometry(100, 100, 1200, 800)
 
+        self.manager.load_deadline_data()
         self.setup_ui()
-        self.load_deadline_data()
 
     def setup_ui(self):
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
-
         main_layout = QVBoxLayout(central_widget)
-
-        # Splitter vertical
-        splitter = QSplitter(Qt.Vertical)
-        main_layout.addWidget(splitter)
-
-        # === PARTIE HAUTE : Configuration ===
         config_widget = QWidget()
         config_layout = QVBoxLayout(config_widget)
 
-        # Infos Deadline
-        self.info_label = QLabel("Loading data...")
+        # Deadline informations
+        workers_count = len(self.manager.workers)
+        pools_count = len(self.manager.all_pools)
+        self.info_label = QLabel(f"{workers_count} workers | {pools_count} pools | Priority pool: '{config.PRIORITY_POOL}'")
         config_layout.addWidget(self.info_label)
 
         # Documentation link
@@ -131,7 +124,7 @@ class DeadlinePoolManagerGUI(QMainWindow):
         self.doc_link.setCursor(Qt.PointingHandCursor)
         config_layout.addWidget(self.doc_link)
 
-        # Zone des sliders de pools
+        # Pools configuration
         pools_group = QGroupBox("Pools configuration (weights)")
         pools_layout = QVBoxLayout()
 
@@ -146,7 +139,9 @@ class DeadlinePoolManagerGUI(QMainWindow):
         pools_group.setLayout(pools_layout)
         config_layout.addWidget(pools_group)
 
-        # Boutons d'action
+        self.create_pool_sliders()
+
+        # Buttons
         buttons_layout = QHBoxLayout()
 
         self.equal_btn = QPushButton("Automatic Equal Distribution")
@@ -159,114 +154,33 @@ class DeadlinePoolManagerGUI(QMainWindow):
 
         config_layout.addLayout(buttons_layout)
 
-        splitter.addWidget(config_widget)
+        main_layout.addWidget(config_widget)
 
     def open_documentation(self):
         url = "https://www.notion.so/illogic/Dynamic-Priority-DeadlinePoolManager_GUI-2c49d24ae7e3804b858dffcbf16d76ee"
         QDesktopServices.openUrl(QUrl(url))
 
-    def load_deadline_data(self):
-        self.manager.load_deadline_data()
-        workers_count = len(self.manager.workers)
-        pools_count = len(self.manager.all_pools)
-        
-        self.info_label.setText(f"{workers_count} workers | {pools_count} pools | Pool prioritaire: '{config.PRIORITY_POOL}'")
-
-        # Créer les sliders seulement si nécessaire (première fois ou si pools ont changé)
-        # Exclure la pool prioritaire et la pool fallback
-        available_pools = [pool for pool in self.manager.all_pools if pool != config.PRIORITY_POOL and pool != config.FALLBACK_POOL]
-        if not self.pool_sliders or set(self.pool_sliders.keys()) != set(available_pools):
-            self.create_pool_sliders()
-
-        # Calculer et afficher la distribution actuelle sur les sliders
-        self.display_current_distribution_on_sliders()
-
     def create_pool_sliders(self):
-        """Crée les sliders pour chaque pool"""
-        # Supprimer les anciens widgets
-        for i in reversed(range(self.pools_container_layout.count())):
-            item = self.pools_container_layout.itemAt(i)
-            if item.widget():
-                item.widget().setParent(None)
+        available_pools = [pool for pool in self.manager.all_pools if pool != config.PRIORITY_POOL and pool != config.FALLBACK_POOL]
 
         self.pool_sliders = {}
-
-        # Pools disponibles (sans la pool prioritaire et la pool fallback)
-        available_pools = [p for p in self.manager.all_pools
-                         if p != config.PRIORITY_POOL and p != config.FALLBACK_POOL]
-
         for pool in sorted(available_pools):
             slider_widget = PoolSlider(pool)
             self.pools_container_layout.addWidget(slider_widget)
             self.pool_sliders[pool] = slider_widget
 
-        self.pools_container_layout.addStretch()
-
-        # Ajuster automatiquement la taille de la section des pools
-        # Chaque slider fait environ 50 pixels de hauteur + marges
-        num_pools = len(available_pools)
-        slider_height = 50
-        base_height = 100  # Hauteur de base pour les marges et le titre
-        calculated_height = base_height + (num_pools * slider_height)
-
-        # Limiter entre 200 et 500 pixels
-        optimal_height = max(200, min(500, calculated_height))
-
-        # Trouver le parent QGroupBox et définir sa hauteur minimale
-        pools_group = self.pools_scroll.parent().parent()
-        if pools_group:
-            pools_group.setMinimumHeight(optimal_height)
-
-    def display_current_distribution_on_sliders(self):
-        """Calcule la distribution actuelle et ajuste les sliders en conséquence"""
-        if not self.manager.workers or not self.manager.current_pool_config:
-            return
-
-        # Calculer les statistiques actuelles (pools en priorité, excluant la pool prioritaire et fallback)
-        pool_stats = {}
-        available_pools = [p for p in self.manager.all_pools
-                         if p != config.PRIORITY_POOL and p != config.FALLBACK_POOL]
-
-        for pool in available_pools:
-            pool_stats[pool] = 0
+        pool_stats = {pool: 0 for pool in available_pools}
+        for _, pools in self.manager.current_pool_config.items():
+            if pools:
+                if pools[0] != config.PRIORITY_POOL:
+                    pool_stats[pools[0]] += 1
+                elif len(pools) > 1:
+                    pool_stats[pools[1]] += 1
 
         total_workers = len(self.manager.workers)
-
-        # Compter combien de workers ont chaque pool en priorité (après la pool prioritaire)
-        for worker_name, pools in self.manager.current_pool_config.items():
-            if not pools:
-                continue
-
-            # Trouver la première pool après la pool prioritaire
-            priority_pool_index = 0
-            if pools[0] == config.PRIORITY_POOL and len(pools) > 1:
-                priority_pool_index = 1
-
-            if priority_pool_index < len(pools):
-                first_pool = pools[priority_pool_index]
-                if first_pool in pool_stats:
-                    pool_stats[first_pool] += 1
-
-        # Calculer les pourcentages et ajuster les sliders
-        print("\n" + "="*80)
-        print("DISTRIBUTION ACTUELLE DETECTEE")
-        print("="*80)
-
-        # Bloquer les signaux pendant la mise à jour pour éviter les bugs graphiques
-        for slider in self.pool_sliders.values():
-            slider.blockSignals(True)
-
         for pool_name, count in pool_stats.items():
-            percentage = int((count / total_workers * 100)) if total_workers > 0 else 0
-            if pool_name in self.pool_sliders:
-                self.pool_sliders[pool_name].set_value(percentage)
-            print(f"{pool_name:20s} : {count:3d} workers ({percentage}%)")
-
-        # Réactiver les signaux
-        for slider in self.pool_sliders.values():
-            slider.blockSignals(False)
-
-        print("="*80 + "\n")
+            percentage = int(count / total_workers * 100) if total_workers else 0
+            self.pool_sliders[pool_name].set_value(percentage)
 
     def set_equal_distribution(self):
         pass
