@@ -144,12 +144,20 @@ class DeadlinePoolManagerGUI(QMainWindow):
         # Buttons
         buttons_layout = QHBoxLayout()
 
+        self.refresh_btn = QPushButton("Refresh Deadline Data")
+        self.refresh_btn.clicked.connect(self.load_deadline_data)
+        buttons_layout.addWidget(self.refresh_btn)
+
         self.equal_btn = QPushButton("Set Equal Distribution")
         self.equal_btn.clicked.connect(self.set_equal_distribution)
         buttons_layout.addWidget(self.equal_btn)
 
-        self.save_config_btn = QPushButton("Save Configuration")
-        self.save_config_btn.clicked.connect(self.save)
+        self.apply_sliders_btn = QPushButton("Apply Sliders Distribution")
+        self.apply_sliders_btn.clicked.connect(self.calculate_and_apply_distribution)
+        buttons_layout.addWidget(self.apply_sliders_btn)
+
+        self.save_config_btn = QPushButton("Save JSON Configuration")
+        self.save_config_btn.clicked.connect(self.save_configuration)
         buttons_layout.addWidget(self.save_config_btn)
 
         config_layout.addLayout(buttons_layout)
@@ -169,6 +177,11 @@ class DeadlinePoolManagerGUI(QMainWindow):
             self.pools_container_layout.addWidget(slider_widget)
             self.pool_sliders[pool] = slider_widget
 
+        self.load_deadline_data()
+
+    def load_deadline_data(self):
+        available_pools = [pool for pool in self.manager.all_pools if pool != config.PRIORITY_POOL and pool != config.FALLBACK_POOL]
+
         pool_stats = {pool: 0 for pool in available_pools}
         for _, pools in self.manager.current_pool_config.items():
             if pools:
@@ -186,8 +199,15 @@ class DeadlinePoolManagerGUI(QMainWindow):
         for slider in self.pool_sliders.values():
             slider.set_value(50)
 
-    def save(self):
+    def calculate_and_apply_distribution(self):
         pass
+
+    def save_configuration(self):
+        pool_percentages = {pool_name: slider.get_value() for pool_name, slider in self.pool_sliders.items() if slider.get_value() > 0}
+        config_file = os.path.join(repo_path, "custom", "scripts", "General", "pool_distribution_config.json")
+        with open(config_file, 'w', encoding='utf-8') as f:
+            json.dump(pool_percentages, f, indent=2, ensure_ascii=False)
+        QMessageBox.information(self, "Configuration Saved Successfully", f"The pool distribution configuration has been saved to:\n{config_file}")
 
 
 _window_instance = None
