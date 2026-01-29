@@ -4,6 +4,10 @@ PRIORITY_POOL = "urgent"
 # Pool qui doit toujours rester en dernière position (non distribué)
 FALLBACK_POOL = "none"
 
+# Statuts des workers
+ACTIVE_STATUSES = ["Idle", "Rendering"]
+DISABLED_STATUSES = ["Offline", "Stalled", "Disabled"]
+
 # Poids pour le calcul du score hardware
 # Score = CPUs × HARDWARE_WEIGHT_CPU + RAM_GB × HARDWARE_WEIGHT_RAM + VRAM_GB × HARDWARE_WEIGHT_VRAM
 HARDWARE_WEIGHT_CPU = 1.0   # CPUs: poids normal
