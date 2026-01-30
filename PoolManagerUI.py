@@ -209,7 +209,16 @@ class DeadlinePoolManagerGUI(QMainWindow):
                     RepositoryUtils.SetPoolsForSlave(worker_name, pools)
             for worker_name, pools in disabled_new_distribution.items():
                     RepositoryUtils.SetPoolsForSlave(worker_name, pools)
+
+            print("Available Workers New Distribution:")
+            for worker, pools in available_new_distribution.items():
+                print(f"{worker}: {pools}")
+
+            print("\nDisabled Workers New Distribution:")
+            for worker, pools in disabled_new_distribution.items():
+                print(f"{worker}: {pools}")
             QMessageBox.information(self, "Success", "The new pool distribution has been applied successfully.")
+
             self.manager.load_deadline_data()
             self.load_deadline_data()
 
