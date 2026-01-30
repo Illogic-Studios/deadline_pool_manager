@@ -203,26 +203,15 @@ class DeadlinePoolManagerGUI(QMainWindow):
         disabled_workers = self.manager.get_workers_by_states(config.DISABLED_STATUSES)
         disabled_new_distribution = self.manager.calculate_new_distribution(disabled_workers, self.pool_sliders)
 
-        print("=" * 40)
-        print("Available Workers New Distribution:")
-        for worker, pools in available_new_distribution.items():
-            print(f"{worker}: {pools}")
-
-        print("\nDisabled Workers New Distribution:")
-        for worker, pools in disabled_new_distribution.items():
-            print(f"{worker}: {pools}")
-
-        # reply = QMessageBox.question(self, "Confirm", "Are you sure you want to apply the new pool distribution to the workers?", QMessageBox.Yes | QMessageBox.No)
-
-        # for worker_name in sorted(self.manager.workers):
-        #     current_pools = self.manager.current_pool_config.get(worker_name, [])
-        #     new_pools = self.new_distribution.get(worker_name, [])
-
-        #     if current_pools != new_pools:
-        #         RepositoryUtils.SetPoolsForSlave(worker_name, new_pools)
-
-        # QMessageBox.information(self, "Success", "The new pool distribution has been applied successfully.")
-        # self.load_deadline_data()
+        reply = QMessageBox.question(self, "Confirm", "Are you sure you want to apply the new pool distribution to the workers?", QMessageBox.Yes | QMessageBox.No)
+        if reply == QMessageBox.Yes:
+            for worker_name, pools in available_new_distribution.items():
+                    RepositoryUtils.SetPoolsForSlave(worker_name, pools)
+            for worker_name, pools in disabled_new_distribution.items():
+                    RepositoryUtils.SetPoolsForSlave(worker_name, pools)
+            QMessageBox.information(self, "Success", "The new pool distribution has been applied successfully.")
+            self.manager.load_deadline_data()
+            self.load_deadline_data()
 
     def save_configuration(self):
         pool_percentages = {pool_name: slider.get_value() for pool_name, slider in self.pool_sliders.items() if slider.get_value() > 0}
