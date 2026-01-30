@@ -26,12 +26,35 @@ class DeadlinePoolManager:
                 workers.append(worker)
         return workers
     
-    def calculate_new_distribution(self, workers, pool_percentages):
-        workers_scores = {worker_name: self.get_worker_hardware_info(worker_name) for worker_name in workers}
-        # We sort workers by best hardware score to assign them to the most important pools first
-        sorted_scores = sorted(workers_scores.items(), key=lambda x: x[1], reverse=True)
-        sorted_percentages = sorted(pool_percentages.items(), key=lambda x: x[1], reverse=True)
-        return self.weighted_snake_draft_distribution(sorted_scores, sorted_percentages)
+    def calculate_new_distribution(self, workers, slider_percentages):
+        active_pool_percentages = {}
+        disabled_pools = []
+        for pool_name, slider in slider_percentages.items():
+            if slider.get_value() > 0:
+                active_pool_percentages[pool_name] = slider.get_value()
+            else:
+                disabled_pools.append(pool_name)
+        
+        total = sum(active_pool_percentages.values())
+        if total == 0:
+            new_distribution = {}
+        else:
+            normalization_factor = 100. / total
+            normalized_percentages = {pool_name: value * normalization_factor for pool_name, value in active_pool_percentages.items()}
+            workers_scores = {worker_name: self.get_worker_hardware_info(worker_name) for worker_name in workers}
+            # We sort workers by best hardware score to assign them to the most important pools first
+            sorted_scores = sorted(workers_scores.items(), key=lambda x: x[1], reverse=True)
+            sorted_percentages = sorted(normalized_percentages.items(), key=lambda x: x[1], reverse=True)
+            new_distribution = self.weighted_snake_draft_distribution(sorted_scores, sorted_percentages)
+        
+        for _, pools in new_distribution.items():
+            if disabled_pools:
+                pools.extend(disabled_pools)
+                disabled_pools.append(disabled_pools.pop(0)) # Shift disabled pools for next worker
+            pools.insert(0, config.PRIORITY_POOL)
+            pools.append(config.FALLBACK_POOL)
+        
+        return new_distribution
 
     def get_worker_hardware_info(self, worker_name):
         info = RepositoryUtils.GetSlaveInfo(worker_name, False)

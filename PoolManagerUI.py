@@ -2,34 +2,6 @@ import sys
 import os
 import json
 
-DEBUGPY_LOCATION = r'R:\devAndrew\venvs\debug-pkgs\Lib\site-packages'
-
-try : 
-    sys.path.append(DEBUGPY_LOCATION)
-    import debugpy
-    sys.path.remove(DEBUGPY_LOCATION)
-except :
-    pass
-
-DEBUG_PORT = 5678
-PYTHON_EXECUTABLE = (
-    r"C:\Program Files\Thinkbox"
-    r"\Deadline10\bin\python3\python.exe"
-)
-
-
-import socket
-if not socket.gethostname() == 'SPRINTER-03':
-    sys.exit(1)
-debugpy.configure(python=PYTHON_EXECUTABLE)
-try:
-    print("Waiting to attach to debugger")
-    debugpy.listen(DEBUG_PORT)
-except Exception as e :
-    print(e)
-
-debugpy.wait_for_client()
-
 from Deadline.Scripting import ClientUtils, RepositoryUtils
 
 repo_path = RepositoryUtils.GetRootDirectory()
@@ -225,20 +197,11 @@ class DeadlinePoolManagerGUI(QMainWindow):
             slider.set_value(50)
 
     def calculate_and_apply_distribution(self):
-        pool_percentages = {pool_name: slider.get_value() for pool_name, slider in self.pool_sliders.items() if slider.get_value() > 0}
-        total = sum(pool_percentages.values())
-        if total == 0:
-            QMessageBox.warning(self, "Warning", "Please set at least one pool percentage greater than 0%.")
-            return
-        normalization_factor = 100. / total
-        normalized_percentages = {pool_name: value * normalization_factor for pool_name, value in pool_percentages.items()}
-
         available_workers = self.manager.get_workers_by_states(config.ACTIVE_STATUSES)
-        disabled_workers = self.manager.get_workers_by_states(config.DISABLED_STATUSES)
+        available_new_distribution = self.manager.calculate_new_distribution(available_workers, self.pool_sliders)
 
-        debugpy.breakpoint()
-        available_new_distribution = self.manager.calculate_new_distribution(available_workers, normalized_percentages)
-        disabled_new_distribution = self.manager.calculate_new_distribution(disabled_workers, normalized_percentages)
+        disabled_workers = self.manager.get_workers_by_states(config.DISABLED_STATUSES)
+        disabled_new_distribution = self.manager.calculate_new_distribution(disabled_workers, self.pool_sliders)
 
         print("=" * 40)
         print("Available Workers New Distribution:")
