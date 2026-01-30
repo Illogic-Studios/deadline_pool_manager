@@ -230,29 +230,24 @@ class DeadlinePoolManagerGUI(QMainWindow):
         if total == 0:
             QMessageBox.warning(self, "Warning", "Please set at least one pool percentage greater than 0%.")
             return
-
         normalization_factor = 100. / total
         normalized_percentages = {pool_name: value * normalization_factor for pool_name, value in pool_percentages.items()}
-        pool_percentages = normalized_percentages
 
         available_workers = self.manager.get_workers_by_states(config.ACTIVE_STATUSES)
         disabled_workers = self.manager.get_workers_by_states(config.DISABLED_STATUSES)
 
         debugpy.breakpoint()
-        self.available_new_distribution = self.manager.calculate_new_distribution(available_workers, pool_percentages)
-        self.disabled_new_distribution = self.manager.calculate_new_distribution(disabled_workers, pool_percentages)
+        available_new_distribution = self.manager.calculate_new_distribution(available_workers, normalized_percentages)
+        disabled_new_distribution = self.manager.calculate_new_distribution(disabled_workers, normalized_percentages)
 
-        print("New Distribution for Available Workers:")
-        for pool_name, workers in self.available_new_distribution.items():
-            print(f"  {pool_name}: {len(workers)} workers")
-            for worker in workers:
-                print(f"    - {worker}")
+        print("=" * 40)
+        print("Available Workers New Distribution:")
+        for worker, pools in available_new_distribution.items():
+            print(f"{worker}: {pools}")
 
-        print("\nNew Distribution for Disabled Workers:")
-        for pool_name, workers in self.disabled_new_distribution.items():
-            print(f"  {pool_name}: {len(workers)} workers")
-            for worker in workers:
-                print(f"    - {worker}")
+        print("\nDisabled Workers New Distribution:")
+        for worker, pools in disabled_new_distribution.items():
+            print(f"{worker}: {pools}")
 
         # reply = QMessageBox.question(self, "Confirm", "Are you sure you want to apply the new pool distribution to the workers?", QMessageBox.Yes | QMessageBox.No)
 

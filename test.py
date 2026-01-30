@@ -1,26 +1,26 @@
 def weighted_snake_draft_distribution(workers_scores, pool_percentages):
         worker_nb_per_pool = {}
         total_workers = len(workers_scores)
-        total_percentages = 0.0
-        for pool_name, percentage in pool_percentages.items():
-            worker_nb = total_workers * percentage / (100.0 - total_percentages)
-            worker_nb = 1 if worker_nb < 1.0 else round(worker_nb)
+        total_percentages = 100.0
+        for pool_name, percentage in pool_percentages:
+            worker_nb = round(total_workers * percentage / total_percentages) if total_percentages > 0 else 0
             worker_nb_per_pool[pool_name] = worker_nb
             total_workers -= worker_nb
-            total_percentages += percentage
+            total_percentages -= percentage
 
-        worker_order = []
+        worker_assignement_order = {}
         scores = workers_scores.copy()
+        pools = [pool_name for pool_name, _ in pool_percentages]
         pool_nb = len(pool_percentages)
         while scores:
             for i in range(pool_nb):
                 if i < len(scores):
-                    worker_order.append(scores.pop(0))
+                    worker_assignement_order[scores.pop(0)[0]] = pools.copy()
                 else:
                     break
             for i in range(pool_nb):
                 if i < len(scores):
-                    worker_order.append(scores.pop(-1))
+                    worker_assignement_order[scores.pop(-1)[0]] = pools.copy()
                 else:
                     break
 
@@ -33,66 +33,47 @@ def weighted_snake_draft_distribution(workers_scores, pool_percentages):
                     worker_nb_per_pool[pool_name] -= 1
                     total_workers -= 1
 
-        pool_assignments = {pool: [] for pool in worker_nb_per_pool.keys()}
-        for i in range(len(worker_order)):
-            pool_name = pool_order[i]
-            worker_name = worker_order[i]
-            pool_assignments[pool_name].append(worker_name)
+        for _, pools in worker_assignement_order.items():
+            assigned_pool = pool_order.pop(0)
+            pools.remove(assigned_pool)
+            pools.insert(0, assigned_pool)
 
-        return pool_assignments
+        return worker_assignement_order
+
+        # workers_assignments = {worker: pool_percentages.keys() for worker in worker_nb_per_pool.values()}
+        # for i in range(len(worker_order)):
+        #     pool_name = pool_order[i]
+        #     worker_name = worker_order[i]
+        #     workers_assignments[worker_name].remove(pool_name)
+        #     workers_assignments[worker_name].insert(0, pool_name)
+
+        # return workers_assignments
 
 if __name__ == "__main__":
     # Exemple d'utilisation
     workers_scores = [
-        ("worker1", {"score": 95}),
-        ("worker2", {"score": 90}),
-        ("worker3", {"score": 85}),
-        ("worker4", {"score": 80}),
-        ("worker5", {"score": 75}),
-        ("worker6", {"score": 70}),
-        ("worker7", {"score": 65}),
-        ("worker8", {"score": 60}),
-        ("worker9", {"score": 55}),
-        ("worker10", {"score": 50}),
-        ("worker11", {"score": 45}),
-        ("worker12", {"score": 40}),
+        ("worker1", 95),
+        ("worker2", 85),
+        ("worker3", 75),
+        ("worker4", 65),
+        ("worker5", 55),
+        ("worker6", 45),
+        ("worker7", 35),
+        ("worker8", 25),
+        ("worker9", 15),
+        ("worker10", 5),
     ]
 
 
-    pool_percentages = {
-        "poolA": 80,
-        "poolB": 10,
-        "poolC": 10,
-        "poolD": 1,
-    }
+    pool_percentages = [
+        ("poolA", 40),
+        ("poolB", 30),
+        ("poolC", 20),
+        ("poolD", 10),
+    ]
 
     distribution = weighted_snake_draft_distribution(workers_scores, pool_percentages)
 
-    # Calculer et afficher le score total par pool
-    # workers_scores contient des tuples (worker_name, {"score": value})
-    score_by_worker = {name: info.get("score", 0) for name, info in workers_scores}
-
-    total_score_per_pool = {}
-    distribution_names = {}
-    for pool_name, workers in distribution.items():
-        total = 0
-        names = []
-        for worker in workers:
-            # worker peut être soit un nom (str), soit un tuple (name, info)
-            if isinstance(worker, tuple) and len(worker) > 0:
-                wname = worker[0]
-            else:
-                wname = worker
-            names.append(wname)
-            total += score_by_worker.get(wname, 0)
-        distribution_names[pool_name] = names
-        total_score_per_pool[pool_name] = total
-
-    print("Distribution par pool:")
-    for pool_name, names in distribution_names.items():
-        print(f"  {pool_name}: {names}")
-
-    print("\nScore total par pool:")
-    for pool_name, total in total_score_per_pool.items():
-        print(f"  {pool_name}: {total}")
+    for worker, pools in distribution.items():
+        print(f"{worker}: {pools}")
     

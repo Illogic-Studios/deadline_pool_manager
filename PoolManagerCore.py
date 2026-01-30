@@ -28,8 +28,9 @@ class DeadlinePoolManager:
     
     def calculate_new_distribution(self, workers, pool_percentages):
         workers_scores = {worker_name: self.get_worker_hardware_info(worker_name) for worker_name in workers}
+        # We sort workers by best hardware score to assign them to the most important pools first
         sorted_scores = sorted(workers_scores.items(), key=lambda x: x[1], reverse=True)
-        sorted_percentages = sorted(pool_percentages.items(), key=lambda x: x[1])
+        sorted_percentages = sorted(pool_percentages.items(), key=lambda x: x[1], reverse=True)
         return self.weighted_snake_draft_distribution(sorted_scores, sorted_percentages)
 
     def get_worker_hardware_info(self, worker_name):
@@ -45,27 +46,37 @@ class DeadlinePoolManager:
         return float(match.group()) if match else 0
     
     def weighted_snake_draft_distribution(self, workers_scores, pool_percentages):
+        """
+        Distributes workers to pools by alternating between the highest and lowest scored workers,
+        ensuring a balanced assignment according to specified pool percentages.
+         Args:
+             workers_scores (list of tuples): List of (worker_name, score) tuples
+             pool_percentages (list of tuples): List of (pool_name, percentage) tuples
+         Returns:
+             dict: A dictionary mapping each worker to a list of pools ordered by assignment preference
+        """
         worker_nb_per_pool = {}
         total_workers = len(workers_scores)
-        total_percentages = 0.0
-        for pool_name, percentage in pool_percentages.items():
-            worker_nb = round(total_workers * percentage / (100.0 - total_percentages))
+        total_percentages = 100.0
+        for pool_name, percentage in pool_percentages:
+            worker_nb = round(total_workers * percentage / total_percentages) if total_percentages > 0 else 0
             worker_nb_per_pool[pool_name] = worker_nb
             total_workers -= worker_nb
-            total_percentages += percentage
+            total_percentages -= percentage
 
-        worker_order = []
+        worker_pool_assignement = {}
         scores = workers_scores.copy()
+        pools = [pool_name for pool_name, _ in pool_percentages]
         pool_nb = len(pool_percentages)
         while scores:
             for i in range(pool_nb):
                 if i < len(scores):
-                    worker_order.append(scores.pop(0))
+                    worker_pool_assignement[scores.pop(0)[0]] = pools.copy()
                 else:
                     break
             for i in range(pool_nb):
                 if i < len(scores):
-                    worker_order.append(scores.pop(-1))
+                    worker_pool_assignement[scores.pop(-1)[0]] = pools.copy()
                 else:
                     break
 
@@ -78,10 +89,9 @@ class DeadlinePoolManager:
                     worker_nb_per_pool[pool_name] -= 1
                     total_workers -= 1
 
-        pool_assignments = {pool: [] for pool in worker_nb_per_pool.keys()}
-        for i in range(len(worker_order)):
-            pool_name = pool_order[i]
-            worker_name = worker_order[i]
-            pool_assignments[pool_name].append(worker_name)
+        for _, pools in worker_pool_assignement.items():
+            assigned_pool = pool_order.pop(0)
+            pools.remove(assigned_pool)
+            pools.insert(0, assigned_pool)
 
-        return pool_assignments
+        return worker_pool_assignement
