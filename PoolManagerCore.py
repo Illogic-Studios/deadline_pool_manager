@@ -26,7 +26,7 @@ class DeadlinePoolManager:
                 workers.append(worker)
         return workers
     
-    def calculate_new_distribution(self, workers, slider_percentages):
+    def get_new_distribution(self, workers, slider_percentages):
         active_pool_percentages = {}
         disabled_pools = []
         for pool_name, slider in slider_percentages.items():
@@ -45,7 +45,7 @@ class DeadlinePoolManager:
             # We sort workers by best hardware score to assign them to the most important pools first
             sorted_scores = sorted(workers_scores.items(), key=lambda x: x[1], reverse=True)
             sorted_percentages = sorted(normalized_percentages.items(), key=lambda x: x[1], reverse=True)
-            new_distribution = self.weighted_snake_draft_distribution(sorted_scores, sorted_percentages)
+            new_distribution = self.get_weighted_snake_draft_distribution(sorted_scores, sorted_percentages)
         
         for _, pools in new_distribution.items():
             if disabled_pools:
@@ -68,7 +68,7 @@ class DeadlinePoolManager:
         match = re.search(r"(\d+)", s)
         return float(match.group()) if match else 0
     
-    def weighted_snake_draft_distribution(self, workers_scores, pool_percentages):
+    def get_weighted_snake_draft_distribution(self, workers_scores, pool_percentages):
         """
         Distributes workers to pools by alternating between the highest and lowest scored workers,
         ensuring a balanced assignment according to specified pool percentages.

@@ -149,13 +149,9 @@ class DeadlinePoolManagerGUI(QMainWindow):
         self.equal_btn.clicked.connect(self.set_equal_distribution)
         buttons_layout.addWidget(self.equal_btn)
 
-        self.apply_sliders_btn = QPushButton("Apply Sliders Distribution")
-        self.apply_sliders_btn.clicked.connect(self.calculate_and_apply_distribution)
+        self.apply_sliders_btn = QPushButton("Apply and Save Distribution")
+        self.apply_sliders_btn.clicked.connect(self.apply_and_save_distribution)
         buttons_layout.addWidget(self.apply_sliders_btn)
-
-        self.save_config_btn = QPushButton("Save JSON Configuration")
-        self.save_config_btn.clicked.connect(self.save_configuration)
-        buttons_layout.addWidget(self.save_config_btn)
 
         config_layout.addLayout(buttons_layout)
 
@@ -196,12 +192,12 @@ class DeadlinePoolManagerGUI(QMainWindow):
         for slider in self.pool_sliders.values():
             slider.set_value(50)
 
-    def calculate_and_apply_distribution(self):
+    def apply_and_save_distribution(self):
         available_workers = self.manager.get_workers_by_states(config.ACTIVE_STATUSES)
-        available_new_distribution = self.manager.calculate_new_distribution(available_workers, self.pool_sliders)
+        available_new_distribution = self.manager.get_new_distribution(available_workers, self.pool_sliders)
 
         disabled_workers = self.manager.get_workers_by_states(config.DISABLED_STATUSES)
-        disabled_new_distribution = self.manager.calculate_new_distribution(disabled_workers, self.pool_sliders)
+        disabled_new_distribution = self.manager.get_new_distribution(disabled_workers, self.pool_sliders)
 
         reply = QMessageBox.question(self, "Confirm", "Are you sure you want to apply the new pool distribution to the workers?", QMessageBox.Yes | QMessageBox.No)
         if reply == QMessageBox.Yes:
@@ -217,18 +213,16 @@ class DeadlinePoolManagerGUI(QMainWindow):
             print("\nDisabled Workers New Distribution:")
             for worker, pools in disabled_new_distribution.items():
                 print(f"{worker}: {pools}")
-            QMessageBox.information(self, "Success", "The new pool distribution has been applied successfully.")
+
+            pool_percentages = {pool_name: slider.get_value() for pool_name, slider in self.pool_sliders.items() if slider.get_value() > 0}
+            config_file = os.path.join(repo_path, "custom", "scripts", "General", "pool_distribution_config.json")
+            with open(config_file, 'w', encoding='utf-8') as f:
+                json.dump(pool_percentages, f, indent=2, ensure_ascii=False)
+
+            QMessageBox.information(self, "Success", f"The new pool distribution has been applied successfully. \nThe configuration has also been saved to \n{config_file}")
 
             self.manager.load_deadline_data()
             self.load_deadline_data()
-
-    def save_configuration(self):
-        pool_percentages = {pool_name: slider.get_value() for pool_name, slider in self.pool_sliders.items() if slider.get_value() > 0}
-        config_file = os.path.join(repo_path, "custom", "scripts", "General", "pool_distribution_config.json")
-        with open(config_file, 'w', encoding='utf-8') as f:
-            json.dump(pool_percentages, f, indent=2, ensure_ascii=False)
-        QMessageBox.information(self, "Configuration Saved Successfully", f"The pool distribution configuration has been saved to:\n{config_file}")
-
 
 _window_instance = None
 
