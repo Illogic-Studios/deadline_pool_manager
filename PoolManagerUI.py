@@ -2,7 +2,7 @@ import sys
 import os
 import json
 
-from Deadline.Scripting import ClientUtils, RepositoryUtils
+from Deadline.Scripting import RepositoryUtils
 
 repo_path = RepositoryUtils.GetRootDirectory()
 general_scripts_path = os.path.join(repo_path, "custom", "scripts", "General")
