@@ -158,7 +158,7 @@ class DeadlinePoolManagerGUI(QMainWindow):
         main_layout.addWidget(config_widget)
 
     def open_documentation(self):
-        url = "https://www.notion.so/illogic/Dynamic-Priority-DeadlinePoolManager_GUI-2c49d24ae7e3804b858dffcbf16d76ee"
+        url = "https://www.notion.so/illogic/Pool-Manager-V2-2fb9d24ae7e380f9b5a6cb8c632c0deb"
         QDesktopServices.openUrl(QUrl(url))
 
     def create_pool_sliders(self):
@@ -193,14 +193,15 @@ class DeadlinePoolManagerGUI(QMainWindow):
             slider.set_value(50)
 
     def apply_and_save_distribution(self):
-        available_workers = self.manager.get_workers_by_states(config.ACTIVE_STATUSES)
-        available_new_distribution = self.manager.get_new_distribution(available_workers, self.pool_sliders)
-
-        disabled_workers = self.manager.get_workers_by_states(config.DISABLED_STATUSES)
-        disabled_new_distribution = self.manager.get_new_distribution(disabled_workers, self.pool_sliders)
-
         reply = QMessageBox.question(self, "Confirm", "Are you sure you want to apply the new pool distribution to the workers?", QMessageBox.Yes | QMessageBox.No)
         if reply == QMessageBox.Yes:
+            available_workers = self.manager.get_workers_by_states(config.ACTIVE_STATUSES)
+            available_new_distribution = self.manager.get_new_distribution(available_workers, self.pool_sliders)
+
+            disabled_workers = self.manager.get_workers_by_states(config.DISABLED_STATUSES)
+            disabled_new_distribution = self.manager.get_new_distribution(disabled_workers, self.pool_sliders)
+
+
             for worker_name, pools in available_new_distribution.items():
                     RepositoryUtils.SetPoolsForSlave(worker_name, pools)
             for worker_name, pools in disabled_new_distribution.items():
