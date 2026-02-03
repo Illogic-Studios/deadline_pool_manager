@@ -201,7 +201,6 @@ class DeadlinePoolManagerGUI(QMainWindow):
             disabled_workers = self.manager.get_workers_by_states(config.DISABLED_STATUSES)
             disabled_new_distribution = self.manager.get_new_distribution(disabled_workers, self.pool_sliders)
 
-
             for worker_name, pools in available_new_distribution.items():
                     RepositoryUtils.SetPoolsForSlave(worker_name, pools)
             for worker_name, pools in disabled_new_distribution.items():
@@ -215,7 +214,7 @@ class DeadlinePoolManagerGUI(QMainWindow):
             for worker, pools in disabled_new_distribution.items():
                 print(f"{worker}: {pools}")
 
-            pool_percentages = {pool_name: slider.get_value() for pool_name, slider in self.pool_sliders.items() if slider.get_value() > 0}
+            pool_percentages = {pool_name: slider.get_value() for pool_name, slider in self.pool_sliders.items()}
             config_file = os.path.join(repo_path, "custom", "scripts", "General", "pool_distribution_config.json")
             with open(config_file, 'w', encoding='utf-8') as f:
                 json.dump(pool_percentages, f, indent=2, ensure_ascii=False)
