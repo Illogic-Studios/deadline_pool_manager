@@ -5,7 +5,7 @@ import json
 from Deadline.Scripting import RepositoryUtils
 
 repo_path = RepositoryUtils.GetRootDirectory()
-general_scripts_path = os.path.join(repo_path, "custom", "scripts", "General")
+general_scripts_path = os.path.join(repo_path, "custom", "scripts", "General", "PoolManager")
 if general_scripts_path not in sys.path:
     sys.path.insert(0, general_scripts_path)
 

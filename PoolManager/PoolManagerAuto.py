@@ -5,7 +5,7 @@ import sys
 from Deadline.Scripting import RepositoryUtils
 
 repo_path = RepositoryUtils.GetRootDirectory()
-general_scripts_path = os.path.join(repo_path, "custom", "scripts", "General")
+general_scripts_path = os.path.join(repo_path, "custom", "scripts", "General", "PoolManager")
 if general_scripts_path not in sys.path:
     sys.path.insert(0, general_scripts_path)
 
@@ -23,7 +23,8 @@ class DummySlider:
 
 def apply_distribution():
     if not os.path.exists(CONFIG_PATH):
-        print(f"Configuration file not found at {CONFIG_PATH}. Aborting distribution application.")
+        with open(LOG_PATH, "w", encoding="utf-8") as log_file:
+            log_file.write(f"Configuration file not found at {CONFIG_PATH}. No changes applied.\n")
         return
 
     with open(CONFIG_PATH, encoding="utf-8") as f:
