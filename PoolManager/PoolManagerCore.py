@@ -36,17 +36,13 @@ class DeadlinePoolManager:
             else:
                 disabled_pools.append(pool_name)
         
-        total = sum(active_pool_percentages.values())
-        if total == 0:
-            new_distribution = {}
-        else:
-            normalization_factor = 100. / total
-            normalized_percentages = {pool_name: value * normalization_factor for pool_name, value in active_pool_percentages.items()}
-            workers_scores = {worker_name: self.get_worker_hardware_info(worker_name) for worker_name in workers}
-            # We sort workers by best hardware score to assign them to the most important pools first
-            sorted_scores = sorted(workers_scores.items(), key=lambda x: x[1], reverse=True)
-            sorted_percentages = sorted(normalized_percentages.items(), key=lambda x: x[1], reverse=True)
-            new_distribution = self.get_weighted_snake_draft_distribution(sorted_scores, sorted_percentages)
+        normalized_percentages = self.get_normalized_percentages(active_pool_percentages)
+        adjusted_percentages = self.get_adjusted_pool_percentages(normalized_percentages)
+        workers_scores = {worker_name: self.get_worker_hardware_info(worker_name) for worker_name in workers}
+        # We sort workers by best hardware score to assign them to the most important pools first
+        sorted_scores = sorted(workers_scores.items(), key=lambda x: x[1], reverse=True)
+        sorted_percentages = sorted(adjusted_percentages.items(), key=lambda x: x[1], reverse=True)
+        new_distribution = self.get_weighted_snake_draft_distribution(sorted_scores, sorted_percentages)
         
         for _, pools in new_distribution.items():
             if disabled_pools:
@@ -68,6 +64,32 @@ class DeadlinePoolManager:
     def extract_go_from_string(self, s):
         match = re.search(r"(\d+)", s)
         return float(match.group()) if match else 0
+    
+    def get_adjusted_pool_percentages(self, pool_percentages):
+        job_percentages = self.get_job_percentages()
+        new_pool_percentages = pool_percentages.copy()
+        for pool in new_pool_percentages.keys():
+            job_percentage = job_percentages.get(pool, 0)
+            if job_percentage < new_pool_percentages[pool]:
+                new_pool_percentages[pool] = job_percentage
+        return self.get_normalized_percentages(new_pool_percentages)
+    
+    def get_normalized_percentages(self, pool_percentages):
+        total = sum(pool_percentages.values())
+        if total > 0:
+            normalization_factor = 100. / total
+            return {pool_name: value * normalization_factor for pool_name, value in pool_percentages.items()}
+        return pool_percentages
+
+    def get_job_percentages(self):
+        job_counts = {pool: 0 for pool in self.all_pools}
+        total_jobs = 0
+        for job in RepositoryUtils.GetJobs(True):
+            job_counts[job.JobPool] += 1
+            total_jobs += 1
+        if total_jobs > 0:
+            return {pool: (count / total_jobs) * 100 for pool, count in job_counts.items()}
+        return job_counts
     
     def get_weighted_snake_draft_distribution(self, workers_scores, pool_percentages):
         """
