@@ -45,15 +45,7 @@ def apply_distribution():
     for worker_name, pools in disabled_new_distribution.items():
         RepositoryUtils.SetPoolsForSlave(worker_name, pools)
 
-    with open(LOG_PATH, "w", encoding="utf-8") as log_file:
-        log_file.write("Applied new pool distribution:\n")
-        log_file.write("Available Workers:\n")
-        for worker_name, pools in available_new_distribution.items():
-            log_file.write(f"  {worker_name}: {', '.join(pools)}\n")
-        log_file.write("Disabled Workers:\n")
-        for worker_name, pools in disabled_new_distribution.items():
-            log_file.write(f"  {worker_name}: {', '.join(pools)}\n")
-        log_file.write("\n")
+    manager.log_pool_application("Auto update", pool_percentages)
 
 def __main__(*args):
     apply_distribution()

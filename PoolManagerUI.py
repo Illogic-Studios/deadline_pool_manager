@@ -1,6 +1,7 @@
 import sys
 import os
 import json
+import getpass
 
 from Deadline.Scripting import RepositoryUtils
 
@@ -223,6 +224,8 @@ class DeadlinePoolManagerGUI(QMainWindow):
 
             self.manager.load_deadline_data()
             self.load_deadline_data()
+
+            self.manager.log_pool_application(getpass.getuser(), pool_percentages)
 
 _window_instance = None
 
