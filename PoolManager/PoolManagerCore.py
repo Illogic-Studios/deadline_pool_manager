@@ -2,9 +2,6 @@ import PoolManagerConfig as config
 from Deadline.Scripting import RepositoryUtils
 import re
 from datetime import datetime
-import os
-
-LOG_PATH = os.path.join(os.path.dirname(__file__), "pool_distribution_log.txt")
 
 class DeadlinePoolManager:
     def __init__(self):
@@ -125,7 +122,7 @@ class DeadlinePoolManager:
     
     def log_pool_application(self, user, pool_percentages):
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        with open(LOG_PATH, "a", encoding="utf-8") as f:
+        with open(config.LOG_PATH, "a", encoding="utf-8") as f:
             f.write(f"[{now}] Utilisateur: {user}\n")
             f.write("Pourcentages appliqués:\n")
             for pool, pct in pool_percentages.items():

@@ -1,3 +1,5 @@
+import os
+
 # Pool qui doit toujours rester en première position
 PRIORITY_POOL = "urgent"
 
@@ -13,3 +15,6 @@ DISABLED_STATUSES = ["Offline", "Stalled", "Disabled"]
 HARDWARE_WEIGHT_CPU = 1.0   # CPUs: poids normal
 HARDWARE_WEIGHT_RAM = 0.5   # RAM: poids moyen
 HARDWARE_WEIGHT_VRAM = 2.0  # VRAM: poids élevé (souvent le facteur limitant pour le rendu GPU)
+
+CONFIG_PATH = os.path.join(os.path.dirname(__file__), "pool_distribution_config.json")
+LOG_PATH = os.path.join(os.path.dirname(__file__), "pool_distribution_log.txt")

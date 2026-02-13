@@ -122,6 +122,14 @@ class DeadlinePoolManagerGUI(QMainWindow):
         self.doc_link.setCursor(Qt.PointingHandCursor)
         config_layout.addWidget(self.doc_link)
 
+        # Log file button
+        self.log_link = QLabel('<a href="#" style="color: #0066cc;">📂 Open Log File</a>')
+        self.log_link.setOpenExternalLinks(False)
+        self.log_link.linkActivated.connect(self.open_log_file)
+        self.log_link.setStyleSheet("QLabel { padding: 3px; }")
+        self.log_link.setCursor(Qt.PointingHandCursor)
+        config_layout.addWidget(self.log_link)
+
         # Pools configuration
         pools_group = QGroupBox("Pools configuration (weights)")
         pools_layout = QVBoxLayout()
@@ -157,6 +165,13 @@ class DeadlinePoolManagerGUI(QMainWindow):
         config_layout.addLayout(buttons_layout)
 
         main_layout.addWidget(config_widget)
+
+    def open_log_file(self):
+        debugpy.breakpoint()
+        if os.path.exists(config.LOG_PATH):
+            QDesktopServices.openUrl(QUrl.fromLocalFile(config.LOG_PATH))
+        else:
+            QMessageBox.warning(self, "File Not Found", f"The log file was not found at:\n{config.LOG_PATH}")
 
     def open_documentation(self):
         url = "https://www.notion.so/illogic/Pool-Manager-V2-2fb9d24ae7e380f9b5a6cb8c632c0deb"

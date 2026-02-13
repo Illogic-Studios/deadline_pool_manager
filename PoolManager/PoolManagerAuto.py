@@ -12,9 +12,6 @@ if general_scripts_path not in sys.path:
 import PoolManagerConfig as config
 from PoolManagerCore import DeadlinePoolManager
 
-CONFIG_PATH = os.path.join(os.path.dirname(__file__), "pool_distribution_config.json")
-LOG_PATH = os.path.join(os.path.dirname(__file__), "pool_distribution_log.txt")
-
 class DummySlider:
     def __init__(self, value):
         self._value = value
@@ -22,12 +19,12 @@ class DummySlider:
         return self._value
 
 def apply_distribution():
-    if not os.path.exists(CONFIG_PATH):
-        with open(LOG_PATH, "w", encoding="utf-8") as log_file:
-            log_file.write(f"Configuration file not found at {CONFIG_PATH}. No changes applied.\n")
+    if not os.path.exists(config.CONFIG_PATH):
+        with open(config.LOG_PATH, "w", encoding="utf-8") as log_file:
+            log_file.write(f"Configuration file not found at {config.CONFIG_PATH}. No changes applied.\n")
         return
 
-    with open(CONFIG_PATH, encoding="utf-8") as f:
+    with open(config.CONFIG_PATH, encoding="utf-8") as f:
         pool_percentages = json.load(f)
     pool_sliders = {pool: DummySlider(val) for pool, val in pool_percentages.items()}
     manager = DeadlinePoolManager()
