@@ -224,11 +224,10 @@ class DeadlinePoolManagerGUI(QMainWindow):
                 print(f"{worker}: {pools}")
 
             pool_percentages = {pool_name: slider.get_value() for pool_name, slider in self.pool_sliders.items()}
-            config_file = os.path.join(repo_path, "custom", "scripts", "General", "pool_distribution_config.json")
-            with open(config_file, 'w', encoding='utf-8') as f:
+            with open(config.CONFIG_PATH, 'w', encoding='utf-8') as f:
                 json.dump(pool_percentages, f, indent=2, ensure_ascii=False)
 
-            QMessageBox.information(self, "Success", f"The new pool distribution has been applied successfully. \nThe configuration has also been saved to \n{config_file}")
+            QMessageBox.information(self, "Success", f"The new pool distribution has been applied successfully. \nThe configuration has also been saved to \n{config.CONFIG_PATH}")
 
             self.manager.log_pool_application(getpass.getuser(), pool_percentages)
 
