@@ -70,8 +70,8 @@ class DeadlinePoolManager:
         new_pool_percentages = pool_percentages.copy()
         for pool in new_pool_percentages.keys():
             job_percentage = job_percentages.get(pool, 0)
-            if job_percentage < new_pool_percentages[pool]:
-                new_pool_percentages[pool] = job_percentage
+            if job_percentage == 0:
+                new_pool_percentages[pool] = 0
         return self.get_normalized_percentages(new_pool_percentages)
     
     def get_normalized_percentages(self, pool_percentages):
@@ -87,8 +87,6 @@ class DeadlinePoolManager:
         for job in RepositoryUtils.GetJobs(True):
             job_counts[job.JobPool] += 1
             total_jobs += 1
-        if total_jobs > 0:
-            return {pool: (count / total_jobs) * 100 for pool, count in job_counts.items()}
         return job_counts
     
     def get_weighted_snake_draft_distribution(self, workers_scores, pool_percentages):
