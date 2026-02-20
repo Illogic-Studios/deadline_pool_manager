@@ -150,8 +150,8 @@ class DeadlinePoolManagerGUI(QMainWindow):
         # Buttons
         buttons_layout = QHBoxLayout()
 
-        self.refresh_btn = QPushButton("Refresh Deadline Data")
-        self.refresh_btn.clicked.connect(self.load_deadline_data)
+        self.refresh_btn = QPushButton("Refresh User Data")
+        self.refresh_btn.clicked.connect(self.load_user_data)
         buttons_layout.addWidget(self.refresh_btn)
 
         self.equal_btn = QPushButton("Set Equal Distribution")
@@ -185,23 +185,15 @@ class DeadlinePoolManagerGUI(QMainWindow):
             self.pools_container_layout.addWidget(slider_widget)
             self.pool_sliders[pool] = slider_widget
 
-        self.load_deadline_data()
+        self.load_user_data()
 
-    def load_deadline_data(self):
-        available_pools = [pool for pool in self.manager.all_pools if pool != config.PRIORITY_POOL and pool != config.FALLBACK_POOL]
-
-        pool_stats = {pool: 0 for pool in available_pools}
-        for _, pools in self.manager.current_pool_config.items():
-            if pools:
-                if pools[0] != config.PRIORITY_POOL:
-                    pool_stats[pools[0]] += 1
-                elif len(pools) > 1:
-                    pool_stats[pools[1]] += 1
-
-        total_workers = len(self.manager.workers)
-        for pool_name, count in pool_stats.items():
-            percentage = int(count / total_workers * 100) if total_workers else 0
-            self.pool_sliders[pool_name].set_value(percentage)
+    def load_user_data(self):
+        if os.path.exists(config.CONFIG_PATH):
+            with open(config.CONFIG_PATH, 'r', encoding='utf-8') as f:
+                pool_percentages = json.load(f)
+            for pool_name, percentage in pool_percentages.items():
+                if pool_name in self.pool_sliders:
+                    self.pool_sliders[pool_name].set_value(percentage)
 
     def set_equal_distribution(self):
         for slider in self.pool_sliders.values():
