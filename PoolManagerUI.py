@@ -167,7 +167,6 @@ class DeadlinePoolManagerGUI(QMainWindow):
         main_layout.addWidget(config_widget)
 
     def open_log_file(self):
-        debugpy.breakpoint()
         if os.path.exists(config.LOG_PATH):
             QDesktopServices.openUrl(QUrl.fromLocalFile(config.LOG_PATH))
         else:
