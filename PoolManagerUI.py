@@ -210,6 +210,8 @@ class DeadlinePoolManagerGUI(QMainWindow):
     def apply_and_save_distribution(self):
         reply = QMessageBox.question(self, "Confirm", "Are you sure you want to apply the new pool distribution to the workers?", QMessageBox.Yes | QMessageBox.No)
         if reply == QMessageBox.Yes:
+            self.manager.load_deadline_data()
+
             available_workers = self.manager.get_workers_by_states(config.ACTIVE_STATUSES)
             available_new_distribution = self.manager.get_new_distribution(available_workers, self.pool_sliders)
 
@@ -235,9 +237,6 @@ class DeadlinePoolManagerGUI(QMainWindow):
                 json.dump(pool_percentages, f, indent=2, ensure_ascii=False)
 
             QMessageBox.information(self, "Success", f"The new pool distribution has been applied successfully. \nThe configuration has also been saved to \n{config_file}")
-
-            self.manager.load_deadline_data()
-            self.load_deadline_data()
 
             self.manager.log_pool_application(getpass.getuser(), pool_percentages)
 
