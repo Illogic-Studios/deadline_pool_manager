@@ -85,8 +85,9 @@ class DeadlinePoolManager:
         job_counts = {pool: 0 for pool in self.all_pools}
         total_jobs = 0
         for job in RepositoryUtils.GetJobs(True):
-            job_counts[job.JobPool] += 1
-            total_jobs += 1
+            if job.Status.ToString() in config.JOB_PENDING_STATUSES:
+                job_counts[job.JobPool] += 1
+                total_jobs += 1
         return job_counts
     
     def get_weighted_snake_draft_distribution(self, workers_scores, pool_percentages):

@@ -10,6 +10,9 @@ FALLBACK_POOL = "none"
 ACTIVE_STATUSES = ["Idle", "Rendering"]
 DISABLED_STATUSES = ["Offline", "Stalled", "Disabled"]
 
+# Status des jobs
+JOB_PENDING_STATUSES = ["Active", "Pending", "Rendering"]
+
 # Poids pour le calcul du score hardware
 # Score = CPUs × HARDWARE_WEIGHT_CPU + RAM_GB × HARDWARE_WEIGHT_RAM + VRAM_GB × HARDWARE_WEIGHT_VRAM
 HARDWARE_WEIGHT_CPU = 1.0   # CPUs: poids normal

@@ -188,6 +188,7 @@ class DeadlinePoolManagerGUI(QMainWindow):
         self.load_user_data()
 
     def load_user_data(self):
+        print(config.CONFIG_PATH)
         if os.path.exists(config.CONFIG_PATH):
             with open(config.CONFIG_PATH, 'r', encoding='utf-8') as f:
                 pool_percentages = json.load(f)

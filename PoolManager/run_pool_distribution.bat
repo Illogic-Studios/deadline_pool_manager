@@ -8,4 +8,3 @@ echo Execution du script...
 
 echo.
 echo Script termine - Code: %ERRORLEVEL%
-pause
