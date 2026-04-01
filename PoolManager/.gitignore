@@ -1,2 +1,4 @@
 webhook_msg_id.txt
 .env
+.vscode/
+__pycache__
