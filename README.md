@@ -122,7 +122,7 @@ Final pool distribution:
 **Triggers Tab**
 
 - Click **“New…”**
-- **Begin the task:** On a schedule
+- **Start the task:** On a schedule
 - **Settings:** Daily
 - **Repeat task every:** 15 minutes
 - **For a duration of:** Indefinitely
