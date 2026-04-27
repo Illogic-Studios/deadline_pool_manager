@@ -10,7 +10,7 @@ The Deadline Pool Manager scripts ensures that each pool gets an even distributi
 SCORE** = RAM_GB * 0.5 + CPU_CORES + VRAM_GB * 2
 ```
 
-All machines in the farm belong to all pools, which correspond to the current productions at our studio. Jobs are distributed across the farm based on their pool, priority, and submission time. The order in which pools are assigned to a given machine affects job selection: when multiple jobs with the same priority arrive simultaneously for a CASTOR machine configured with the pools urgent, poolA, and poolB, Deadline processes jobs in the order urgent, then poolA, and finally poolB. While this behavior functions as designed, modifying the pool order for workers in the Deadline interface is not straightforward, as it requires selecting a pool, selecting one or more workers, and using the Promote or Demote actions to adjust their order.
+All machines in the farm belong to all pools, which correspond to the current productions at our studio. Jobs are distributed across the farm based on their pool, priority, and submission time. The order in which pools are assigned to a given machine affects job selection: when multiple jobs with the same priority arrive simultaneously for a machine configured with the pools urgent, poolA, and poolB, Deadline processes jobs in the order urgent, then poolA, and finally poolB. While this behavior functions as designed, modifying the pool order for workers in the Deadline interface is not straightforward, as it requires selecting a pool, selecting one or more workers, and using the Promote or Demote actions to adjust their order.
 
 ## User Interface
 
